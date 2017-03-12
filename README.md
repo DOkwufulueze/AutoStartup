@@ -39,9 +39,13 @@ On your terminal, in the directory containing auto-startup, simply execute the s
 ```
 
 # Execute the script from any directory
-You can also add auto-startup to your PATH so you can just execute it from anywhere in your terminal by simply typing ```auto-startup``` thus:
+You can also add auto-startup to your PATH so you can just execute it from anywhere in your terminal by entering the following:
 ```
   export PATH=$PATH:~/directory-name
   # where directory-name is the name of the directory containing auto-startup
+```
+After which you can execute auto-startup by simply typing the command below on your terminal:
+```
+  auto-startup
 ```
 # Enjoy...
