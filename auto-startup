@@ -15,5 +15,3 @@ for ((i = 0; i < ${#SHELL_COMMANDS[@]}; i++)); do
   xdotool type --delay 1 --clearmodifiers "${SHELL_COMMAND}";
   xdotool key Return;
 done
-
-# DONE
