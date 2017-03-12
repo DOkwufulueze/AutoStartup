@@ -1,19 +1,20 @@
-Purpose: Open new tabs in terminal and excute custom commands automatically.
-Author: Okwufulueze Emeka Daniel
-Date: 12/03/2017
+- Purpose: Open new tabs in terminal and excute custom commands automatically.
+- Author: Okwufulueze Emeka Daniel
+- Date: 12/03/2017
 
 
 # Install xdotool
 ```
   sudo apt-get install xdotool
 ```
-# After installation of xdotool, create a shell script and make it executable:
+
+# Create a shell script, say my-shell-script, and make it executable:
 ```
   touch my-shell-script
   sudo chmod +x my-shell-script
 ```
-Then place the script below in my-shell-script.
 
+# Place the script below in my-shell-script.
 ```
 #!/bin/bash
 # The SHELL_COMMANDS variable below is an array of commands you want to execute on new tabs. I have written out some for example. Remember to separate the array values with spaces
@@ -30,14 +31,16 @@ done
 ```
 
 
-
+# Execute the script from its parent directory
 On your terminal, in the directory containing my-shell-script, simply execute the script by:
 ```
   ./my-shell-script
 ```
 
+# Execute the script from any directory
 You can also add my-shell-script to your PATH so you can just execute it from anywhere in your terminal by simply typing ```my-shell-script``` thus:
 ```
-  export PATH=$PATH:~/directory-name # where directory-name is the name of the directory containing my-shell-script
+  export PATH=$PATH:~/directory-name
+  # where directory-name is the name of the directory containing my-shell-script
 ```
-Enjoy...
+# Enjoy...
