@@ -8,14 +8,14 @@
   sudo apt-get install xdotool
 ```
 
-# Create a shell script and make it executable:
+# Clone this repo or start from scratch:
 You can simply clone this repo and modify as necessary or you can start from scratch and create your own shell script, say auto-startup like I have in this repo.
 ```
   touch auto-startup
   sudo chmod +x auto-startup
 ```
 
-# Place the script below in auto-startup.
+# If you started from scratch with your file named 'auto-startup' for instance, place the script below in auto-startup.
 ```
 #!/bin/bash
 # The SHELL_COMMANDS variable below is an array of commands you want to execute on new tabs. I have written out some for example. Remember to separate the array values with spaces
@@ -31,6 +31,7 @@ for ((i = 0; i < ${#SHELL_COMMANDS[@]}; i++)); do
 done
 ```
 
+# If you didn't start from scratch [meaning you cloned this repo], simply proceed to the next step
 
 # Execute the script from its parent directory
 On your terminal, in the directory containing auto-startup, simply execute the script by:
