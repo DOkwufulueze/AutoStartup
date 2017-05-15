@@ -5,12 +5,9 @@
 - Date: 12/03/2017
 
 
-# Dependency:
-        xdotool
+# Dependency: xdotool
         # Install xdotool
-          ```
-            sudo apt-get install xdotool
-          ```
+          sudo apt-get install xdotool
 
 # Usage:
         auto-startup [-h | --help]
@@ -54,20 +51,14 @@
         to the specified file of the --output flag.
 
 # Installation:
-        - Clone this repo.
-        - Add auto-startup to your PATH so you can simply execute it from anywhere in your terminal by entering the following in your shell rc file, say `bashrc`, `zshrc`, etc:
-        ```
-          export PATH=$PATH:~/path/to/auto-startup
-        ```
+        Clone this repo.
+        Add auto-startup to your PATH so you can simply execute it from anywhere in your terminal by entering the following in your shell rc file, say bashrc, zshrc, etc:
+        export PATH=$PATH:~/path/to/auto-startup
 
-        On your terminal, source the rc file thus [`~/.bashrc` for example]:
-        ```
-          source ~/.bashrc
-        ```
+        On your terminal, source the rc file thus [~/.bashrc for example]:
+        source ~/.bashrc
 
         You can now execute auto-startup by simply typing the command below on your terminal:
-        ```
-          auto-startup [option] [flag]
-        ```
+        auto-startup [option] [flag]
 
         Done.
