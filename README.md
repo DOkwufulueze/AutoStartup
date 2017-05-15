@@ -1,52 +1,73 @@
-- Purpose: Open new tabs in terminal and excute custom commands automatically.
+# Auto Startup
+
+- Purpose: This script opens new tabs on terminal and excutes custom commands automatically.
 - Author: Okwufulueze Emeka Daniel
 - Date: 12/03/2017
 
 
-# Install xdotool
-```
-  sudo apt-get install xdotool
-```
+# Dependency:
+        xdotool
+        # Install xdotool
+          ```
+            sudo apt-get install xdotool
+          ```
 
-# Clone this repo or start from scratch:
-You can simply clone this repo and modify as necessary or you can start from scratch and create your own shell script, say auto-startup like I have in this repo.
-```
-  touch auto-startup
-  sudo chmod +x auto-startup
-```
+# Usage:
+        auto-startup [-h | --help]
+        auto-startup [-c | --command quoted-semicolon-separated-commands]
+        auto-startup [-f | --file-name fileName]
+        auto-startup [-c | --command quoted-semicolon-separated-commands]
+                [[-b | --black-hole] | [-n | --nohup] | [-o | --output file-path]]
+        auto-startup [-f | --file-name fileName]
+                [[-b | --black-hole] | [-n | --nohup] | [-o | --output file-path]]
 
-# If you started from scratch with your file named 'auto-startup' for instance, place the script below in auto-startup.
-```
-#!/bin/bash
-# The SHELL_COMMANDS variable below is an array of commands you want to execute on new tabs. I have written out some for example. Remember to separate the array values with spaces
-SHELL_COMMANDS=('cdyanpals; npm run dev' 'cdwscore; sh serverd.sh' 'cdwscore; php worker.php' 'mysql-workbench');
+# Options:
+        # -c | --command:
+        This option receives the list of your custom commands in
+        quoted string all separated by semicolons [;].
+        For example: auto-startup --command "cd daniel; do_something; do_another_thing".
 
-# Loop through the array of commands and execute each one on a new tab
-for ((i = 0; i < ${#SHELL_COMMANDS[@]}; i++)); do
-  SHELL_COMMAND=${SHELL_COMMANDS[$i]};
-  xdotool key ctrl+shift+t;
-  sleep 1;
-  xdotool type --delay 1 --clearmodifiers "${SHELL_COMMAND}";
-  xdotool key Return;
-done
-```
+        # -f | --file-name:
+        This option receives the name of the file containing
+        all the commands you want to run.
+        Each command in the file should take a
+        line [separate commands with new line characters].
 
-# If you didn't start from scratch [meaning you cloned this repo], simply proceed to the next step
+        # -h | --help:
+        This option displays this help page.
 
-# Execute the script from its parent directory
-On your terminal, in the directory containing auto-startup, simply execute the script by:
-```
-  ./auto-startup
-```
+# Flags:
+        # -b | --black-hole:
+        If this flag is set, then all output from the
+        running processes will be redirected to the /dev/null black-hole.
 
-# Execute the script from any directory
-You can also add auto-startup to your PATH so you can just execute it from anywhere in your terminal by entering the following:
-```
-  export PATH=$PATH:~/directory-name
-  # where directory-name is the name of the directory containing auto-startup
-```
-After which you can execute auto-startup by simply typing the command below on your terminal:
-```
-  auto-startup
-```
-# Enjoy...
+        # -n | --nohup:
+        This flag creates a nohup.out file in the working
+        directories of the running processes and redirects all output
+        from the running processes to the nohup.out file.
+
+        # -o | --output:
+        The --output flag takes the path of the file you
+        intend to use for output of running processes.
+        If the file does not exist, it will be created.
+        All output from the running processes will be redirected
+        to the specified file of the --output flag.
+
+# Installation:
+        - Clone this repo.
+        - Add auto-startup to your PATH so you can simply execute it from anywhere in your terminal by entering the following in your shell rc file, say `bashrc`, `zshrc`, etc:
+        ```
+          export PATH=$PATH:~/path/to/auto-startup
+        ```
+
+        On your terminal, source the rc file thus [`~/.bashrc` for example]:
+        ```
+          source ~/.bashrc
+        ```
+
+        You can now execute auto-startup by simply typing the command below on your terminal:
+        ```
+          auto-startup [option] [flag]
+        ```
+
+        Done.

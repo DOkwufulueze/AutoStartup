@@ -1,17 +1,176 @@
 #!/bin/bash
-# Purpose: Open new tabs in terminal and excute custom commands automatically.
+# Auto Startup
+# Purpose: This script opens new tabs in terminal and excutes custom commands automatically.
 # Author: Okwufulueze Emeka Daniel
-# Date: 12/03/2017
+# Date: 14/05/2017
 
 
-# The SHELL_COMMANDS variable below is an array of commands you want to execute on new tabs. I have written out some for example. Remember to separate the array values with spaces
-SHELL_COMMANDS=('cdyanpals; npm run dev' 'cdwscore; sh serverd.sh' 'cdwscore; php worker.php' 'mysql-workbench');
+outputStream=;
+outputFile=
+SHELL_COMMANDS=();
+TEMP_SHELL_COMMANDS=();
+helpText=
 
-# Loop through the array of commands and execute each one on a new tab
-for ((i = 0; i < ${#SHELL_COMMANDS[@]}; i++)); do
-  SHELL_COMMAND=${SHELL_COMMANDS[$i]};
-  xdotool key ctrl+shift+t;
-  sleep 1;
-  xdotool type --delay 1 --clearmodifiers "${SHELL_COMMAND}";
-  xdotool key Return;
-done
+function createFileIfNotExists() {
+  fileName="$1";
+  test -e "${fileName}" || touch "${fileName}";
+}
+
+function populateShellCommandsFromFile() {
+  while IFS="" read -r fileLine || [[ -n "${fileLine}" ]]; do
+    [[ "${fileLine}" == "" ]] || TEMP_SHELL_COMMANDS+=("${fileLine}");
+  done < "$1";
+}
+
+function getFormattedCommand() {
+  commandItem="$1";
+  regularExpression="(\s*)cd(\s*)";
+  if [[ $commandItem =~ $regularExpression ]]; then
+    return 1;
+  else
+    return 2;
+  fi
+}
+
+function formatShellCommands() {
+  if [[ "${outputStream}" == "nohup" ]]; then
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      getFormattedCommand "${commandItem}";
+      FORMATTED_COMMAND_CODE=$?;
+      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="nohup ${commandItem}";
+      SHELL_COMMANDS+=("${commandItem}");
+    done
+  elif [[ "${outputStream}" == "black-hole" ]]; then
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      getFormattedCommand "${commandItem}";
+      FORMATTED_COMMAND_CODE=$?;
+      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="${commandItem} &>/dev/null";
+      SHELL_COMMANDS+=("${commandItem}");
+    done
+  elif [[ "${outputStream}" == "custom" ]]; then
+    createFileIfNotExists "$outputFile";    
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      getFormattedCommand "${commandItem}";
+      FORMATTED_COMMAND_CODE=$?;
+      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="${commandItem} &>>${outputFile}";
+      SHELL_COMMANDS+=("${commandItem}");
+    done
+  else
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      SHELL_COMMANDS+=("${commandItem}");
+    done
+  fi
+}
+
+displayHowToUse() {
+  helpText=$(cat<< EOF
+
+
+
+            Auto Startup
+            Version: 2.0
+            Usage:  auto-startup [-h | --help]
+                    auto-startup [-c | --command quoted-semicolon-separated-commands]
+                    auto-startup [-f | --file-name fileName]
+                    auto-startup [-c | --command quoted-semicolon-separated-commands]
+                            [[-b | --black-hole] | [-n | --nohup] | [-o | --output file-path]]
+                    auto-startup [-f | --file-name fileName]
+                            [[-b | --black-hole] | [-n | --nohup] | [-o | --output file-path]]
+    
+    
+            Synopsis:
+              Purpose: This script opens new tabs in terminal and
+              excutes custom commands automatically.
+              It sends command output to either nohup.out, the /dev/null black hole,
+              or a custom file, depending on the option selected by the user.
+    
+              Options:
+                -c | --command: This option receives the list of your custom commands in
+                quoted string all separated by semicolons [;].
+                For example: auto-startup -c "cd daniel; do_something; do_another_thing".
+
+                -f | --file-name: This option receives the name of the file containing
+                all the commands you want to run.
+                Each command in the file should take a
+                line [separate commands with new line characters].
+
+                -h | --help: This option displays this help page.
+
+              Flags:
+                -b | --black-hole: If this flag is set, then all output from the
+                running processes will be redirected to the /dev/null black-hole.
+
+                -n | --nohup: This flag creates a nohup.out file in the working
+                directories of the running processes and redirects all output
+                from the running processes to the nohup.out file.
+
+                -o | --output: The --output flag takes the path of the file you
+                intend to use for output of running processes.
+                If the file does not exist, it will be created.
+                All output from the running processes will be redirected
+                to the specified file of the --output flag.
+
+                If no flag is supplied, then output will be written to stdin.
+                
+
+
+            Author: Okwufulueze Emeka Daniel [https://github.com/DOkwufulueze]
+            Date: 14/05/2017
+            
+EOF
+);
+}
+
+if [[ $# -gt 0 ]]; then
+  while [[ "$1" != "" ]]; do
+    case "$1" in
+      -f | --file-name )
+      shift;
+      populateShellCommandsFromFile "$1";        
+      ;;
+
+      -c | --command )
+      shift;
+      IFS=";" read -ra TEMP_SHELL_COMMANDS <<< "$1"
+      ;;
+
+      -n | --nohup )
+        outputStream="nohup";
+      ;;
+
+      -b | --black-hole )
+        outputStream="black-hole";
+      ;;
+
+      -o | --output )
+        shift;
+        outputStream="custom";
+        outputFile="$1";
+      ;;
+
+      -h | --help )
+        displayHowToUse;
+        echo "${helpText}" | less;
+        exit;
+      ;;
+
+    esac
+
+    shift;
+  done
+
+  formatShellCommands;
+fi
+
+if [[ ${#SHELL_COMMANDS[@]} -gt 0 ]]; then
+  # Loop through the array of commands and execute each one on a new tab
+  for ((i = 0; i < ${#SHELL_COMMANDS[@]}; i++)); do
+    SHELL_COMMAND="${SHELL_COMMANDS[$i]}";
+    export DISPLAY=:0.0 && xdotool key ctrl+shift+t;
+    sleep 2;
+    xdotool type --delay 1 --clearmodifiers "${SHELL_COMMAND}";
+    xdotool key Return;
+  done
+else
+  echo "No Command was supplied to auto-startup";
+fi
