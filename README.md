@@ -53,7 +53,8 @@
 # Installation:
         Clone this repo.
         Add auto-startup to your PATH so you can simply execute it from anywhere in your terminal by entering the following in your shell rc file, say bashrc, zshrc, etc:
-        export PATH=$PATH:~/path/to/auto-startup
+        
+        [[ $PATH =~ "path/to/auto-startup" ]] || export PATH=$PATH:path/to/auto-startup
 
         On your terminal, source the rc file thus [~/.bashrc for example]:
         source ~/.bashrc

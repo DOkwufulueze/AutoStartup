@@ -6,13 +6,13 @@
 
 
 outputStream=;
-outputFile=
+outputFile=;
 SHELL_COMMANDS=();
 TEMP_SHELL_COMMANDS=();
-helpText=
+helpText=;
 
 function createFileIfNotExists() {
-  fileName="$1";
+  local fileName="$1";
   test -e "${fileName}" || touch "${fileName}";
 }
 
@@ -22,38 +22,57 @@ function populateShellCommandsFromFile() {
   done < "$1";
 }
 
-function getFormattedCommand() {
-  commandItem="$1";
-  regularExpression="(\s*)cd(\s*)";
-  if [[ $commandItem =~ $regularExpression ]]; then
+function checkStringConformanceForModifyability() {
+  local stringObject="$1";
+  local regularExpression="(\s*)cd(\s*)";
+  if [[ $stringObject =~ $regularExpression ]]; then
     return 1;
   else
     return 2;
   fi
 }
 
+function formatCommandForOutputStream() {
+  local commandStatement="$1";
+  if [[ "${outputStream}" == 'nohup' ]]; then
+    echo " nohup ${commandStatement}" | cat;
+  elif [[ "${outputStream}" == 'black-hole' ]]; then
+    echo " ${commandStatement} &>/dev/null" | cat;
+  elif [[ "${outputStream}" == 'custom' ]]; then
+    echo " ${commandStatement} &>>${outputFile}" | cat;
+  fi
+}
+
+function assessModifyAndUseString() {
+  local commandItem="$1";
+  local commandStatement=;
+  local formattedToken=;
+  local validTokens=();
+  IFS=";&" read -ra commandTokens <<< "${commandItem}";
+  for i in "${!commandTokens[@]}"; do
+    [[ -n "${commandTokens[i]}" ]] && validTokens+=("${commandTokens[i]}");
+  done
+  
+  if [[ "${#validTokens[@]}" -gt 0 ]]; then
+    for validToken in "${validTokens[@]}"; do
+      checkStringConformanceForModifyability "${validToken}";
+      local FORMATTED_COMMAND_CODE=$?;
+      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] || formattedToken=$(formatCommandForOutputStream "${validToken}");
+      [[ -n "${formattedToken}" ]] && commandStatement="${commandItem/$validToken/$formattedToken}" || commandStatement="${commandItem/$validToken/$validToken}";
+    done
+  else
+    checkStringConformanceForModifyability "${commandItem}";
+    local FORMATTED_COMMAND_CODE=$?;
+    [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandStatement="${commandItem}" || commandStatement=$(formatCommandForOutputStream "${commandItem}");
+  fi
+  
+  SHELL_COMMANDS+=("${commandStatement}");
+}
+
 function formatShellCommands() {
-  if [[ "${outputStream}" == "nohup" ]]; then
+  if [[ -n "${outputStream}" ]]; then
     for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
-      getFormattedCommand "${commandItem}";
-      FORMATTED_COMMAND_CODE=$?;
-      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="nohup ${commandItem}";
-      SHELL_COMMANDS+=("${commandItem}");
-    done
-  elif [[ "${outputStream}" == "black-hole" ]]; then
-    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
-      getFormattedCommand "${commandItem}";
-      FORMATTED_COMMAND_CODE=$?;
-      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="${commandItem} &>/dev/null";
-      SHELL_COMMANDS+=("${commandItem}");
-    done
-  elif [[ "${outputStream}" == "custom" ]]; then
-    createFileIfNotExists "$outputFile";    
-    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
-      getFormattedCommand "${commandItem}";
-      FORMATTED_COMMAND_CODE=$?;
-      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandItem="${commandItem}" || commandItem="${commandItem} &>>${outputFile}";
-      SHELL_COMMANDS+=("${commandItem}");
+      assessModifyAndUseString "${commandItem}";
     done
   else
     for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
