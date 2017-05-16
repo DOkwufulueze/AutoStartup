@@ -1,0 +1,155 @@
+#!/bin/bash
+# Startup Manager
+# Purpose: This manager sets up the environment for either a normal auto-startup entity or a daemon auto-startup entity.
+# Author: Okwufulueze Emeka Daniel
+# Date: 15/05/2017
+
+entity=;
+commandSuffix=;
+outputStream=;
+outputFile=
+SHELL_COMMANDS=();
+TEMP_SHELL_COMMANDS=();
+
+function setupManagerForEntity() {
+  entity="$1";
+  if [[ -n "${entity}" && "${entity}" == "daemon" ]]; then
+    commandSuffix='&';
+    outputStream="black-hole";
+  else
+    commandSuffix="";
+    outputStream=;
+  fi
+}
+
+function prepareExitAction() {
+  local statusCode="$1";
+  case "$statusCode" in
+    20 )
+      echo "You supplied an invalid command.";
+      exit 66;
+    ;;
+    
+    21 )
+      echo "You didn't supply any command. Use the -c | --command option with a valid command.";
+      exit 66;
+    ;;
+    
+    30 )
+      echo "You supplied an invalid file name.";
+      exit 66;
+    ;;
+    
+    31 )
+      echo "You didn't supply any file name. Use the -f | --file-name option with a valid file name.";
+      exit 66;
+    ;;
+    
+    60 )
+      echo "You supplied an invalid output file name.";
+      exit 66;
+    ;;
+    
+    61 )
+      echo "You didn't supply any output file name. Use the -o | --output option with a valid output file name.";
+      exit 66;
+    ;;
+
+    * )
+      exit 0;
+    ;;
+  esac
+}
+
+function determineEntryValidity() {
+  local entry="$1";
+  local invalidEntryStatus="$2";
+  local emptyEntryStatus="$3";
+  local VALIDITY_STATUS_CODE=;
+  if [[ -n "${entry}" && "${entry::1}" == "-" ]]; then
+    prepareExitAction "${invalidEntryStatus}";
+  elif [[ -z "${entry}" ]]; then
+    prepareExitAction "${emptyEntryStatus}";
+  fi
+  
+  VALIDITY_STATUS_CODE="$?";
+  return "${VALIDITY_STATUS_CODE}";
+}
+
+function populateShellCommandsFromFile() {
+  while IFS="" read -r fileLine || [[ -n "${fileLine}" ]]; do
+    [[ "${fileLine}" == "" ]] || TEMP_SHELL_COMMANDS+=("${fileLine}");
+  done < "$1";
+}
+
+function checkStringConformanceForModifyability() {
+  local stringObject="$1";
+  local regularExpression="(\s*)cd(\s*)";
+  if [[ $stringObject =~ $regularExpression ]]; then
+    return 1;
+  else
+    return 2;
+  fi
+}
+
+function createFileIfNotExists() {
+  [[ -n "$1" ]] && local fileName="$1" || local fileName="${outputFile}";
+  [[ -n fileName &&
+    (
+      ( -n "$2" && "$2" == "/" && "${fileName::1}" == "/" ) ||
+      ( -z "$2" && "${fileName::1}" != "/" )
+    )
+  ]] && ( test -e "${fileName}" || touch "${fileName}" );
+}
+
+function formatCommandForOutputStream() {
+  local commandStatement="$1";
+  local formattedCommandStatement=;
+  if [[ "${outputStream}" == 'nohup' ]]; then
+    [[ -n "${entity}" && "${entity}" == "daemon" ]] && formattedCommandStatement=" (nohup ${commandStatement} ${commandSuffix})" || formattedCommandStatement=" nohup ${commandStatement} ${commandSuffix}";
+  elif [[ "${outputStream}" == 'black-hole' ]]; then
+    [[ -n "${entity}" && "${entity}" == "daemon" ]] && formattedCommandStatement=" (${commandStatement} &>/dev/null ${commandSuffix})" || formattedCommandStatement=" ${commandStatement} &>/dev/null ${commandSuffix}";
+  elif [[ "${outputStream}" == 'custom' ]]; then
+    [[ -n "${entity}" && "${entity}" == "daemon" ]] && formattedCommandStatement=" (${commandStatement} &>>${outputFile} ${commandSuffix})" || formattedCommandStatement=" ${commandStatement} &>>${outputFile} ${commandSuffix}";
+  fi
+  
+  echo "${formattedCommandStatement}" | cat;
+}
+
+function assessModifyAndUseString() {
+  local commandItem="$1";
+  local commandStatement=;
+  local formattedToken=;
+  local validTokens=();
+  IFS=";&" read -ra commandTokens <<< "${commandItem}";
+  for i in "${!commandTokens[@]}"; do
+    [[ -n "${commandTokens[i]}" ]] && validTokens+=("${commandTokens[i]}");
+  done
+  
+  if [[ "${#validTokens[@]}" -gt 0 ]]; then
+    for validToken in "${validTokens[@]}"; do
+      checkStringConformanceForModifyability "${validToken}";
+      local FORMATTED_COMMAND_CODE="$?";
+      [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] || formattedToken=$(formatCommandForOutputStream "${validToken}");
+      [[ -n "${formattedToken}" ]] && commandStatement="${commandItem/$validToken/$formattedToken}" || commandStatement="${commandItem/$validToken/$validToken}";
+    done
+  else
+    checkStringConformanceForModifyability "${commandItem}";
+    local FORMATTED_COMMAND_CODE="$?";
+    [[ "${FORMATTED_COMMAND_CODE}" -eq "1" ]] && commandStatement="${commandItem}" || commandStatement=$(formatCommandForOutputStream "${commandItem}");
+  fi
+  
+  SHELL_COMMANDS+=("${commandStatement}");
+}
+
+function formatShellCommands() {
+  if [[ -n "${outputStream}" ]]; then
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      assessModifyAndUseString "${commandItem}";
+    done
+  else
+    for commandItem in "${TEMP_SHELL_COMMANDS[@]}"; do
+      SHELL_COMMANDS+=("${commandItem}");
+    done
+  fi
+}
