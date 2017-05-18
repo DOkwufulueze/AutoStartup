@@ -11,6 +11,12 @@ outputFile=
 SHELL_COMMANDS=();
 TEMP_SHELL_COMMANDS=();
 
+function populateShellCommandsFromFile() {
+  while IFS="" read -r fileLine || [[ -n "${fileLine}" ]]; do
+    [[ "${fileLine}" == "" ]] || TEMP_SHELL_COMMANDS+=("${fileLine}");
+  done < "$1";
+}
+
 function setupManagerForEntity() {
   entity="$1";
   if [[ -n "${entity}" && "${entity}" == "daemon" ]]; then
@@ -74,12 +80,6 @@ function determineEntryValidity() {
   
   VALIDITY_STATUS_CODE="$?";
   return "${VALIDITY_STATUS_CODE}";
-}
-
-function populateShellCommandsFromFile() {
-  while IFS="" read -r fileLine || [[ -n "${fileLine}" ]]; do
-    [[ "${fileLine}" == "" ]] || TEMP_SHELL_COMMANDS+=("${fileLine}");
-  done < "$1";
 }
 
 function checkStringConformanceForModifyability() {
