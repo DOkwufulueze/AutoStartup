@@ -1,7 +1,7 @@
 # Auto Startup
 
 - Purpose: This script opens new tabs on terminal and excutes custom commands automatically.
-- Author: Okwufulueze Emeka Daniel
+- Author: Daniel Okwufulueze
 - Date: 12/03/2017
 
 
