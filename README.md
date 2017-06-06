@@ -63,3 +63,11 @@
         auto-startup [option] [flag]
 
         Done.
+<br><br>
+### Please send bug issues you may encounter to [Issues](https://www.github.com/DOkwufulueze/AutoStartup/issues)
+<br><br>
+## Copyleft
+![Copyleft](/images/copyleft.png) 2017 Daniel Okwufulueze
+<br><br>
+## Licence
+This application is distributed under the [GNU GPL-3.0](https://github.com/DOkwufulueze/AutoStartup/blob/master/LICENCE.md) licence
