@@ -1,4 +1,4 @@
-# Auto Startup
+# auto-startup
 
 - Purpose: This script opens new tabs on terminal and excutes custom commands automatically.
 - Author: Daniel Okwufulueze
@@ -51,18 +51,23 @@
         to the specified file of the --output flag.
 
 # Installation:
-        Clone this repo.
-        Add auto-startup to your PATH so you can simply execute it from anywhere in your terminal by entering the following in your shell rc file, say bashrc, zshrc, etc:
+- Clone this repo or download [here](https://github.com/DOkwufulueze/AutoStartup/archive/master.zip)
+
+        git clone git@github.com:DOkwufulueze/AutoStartup.git
+- `cd` into the cloned or downloaded repo
+
+        cd path/to/AutoStartup
+- Install the application
+
+        sudo chmod ugo+x install
         
-        [[ $PATH =~ "path/to/auto-startup" ]] || export PATH=$PATH:path/to/auto-startup
+        ./install
+- You can now execute auto-startup by simply typing the command below on your terminal:
 
-        On your terminal, source the rc file thus [~/.bashrc for example]:
-        source ~/.bashrc
-
-        You can now execute auto-startup by simply typing the command below on your terminal:
         auto-startup [option] [flag]
 
-        Done.
+- Done.
+
 <br><br>
 ### Please send bug issues you may encounter to [Issues](https://www.github.com/DOkwufulueze/AutoStartup/issues)
 <br><br>
